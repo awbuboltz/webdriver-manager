@@ -109,7 +109,25 @@ export class ChromeXml extends XmlConfigSource {
                     this.getOsTypeName() + (this.getOsTypeName() === 'win' ? '32' : '64');
 
                 if (item.includes(osTypeNameAndArch)) {
-                  itemFound = item;
+                  // We've already found a match previously, get the patch version from it
+                  let previousItemVersionParts = itemFound.split('/')[0].split('.');
+
+                  // This is the item that has just been found on this pass check the patch version
+                  let possibleItemVersionParts = item.split('/')[0].split('.');
+
+                  // Make sure both semvers have the same number of decimals so we can compare
+                  if (previousItemVersionParts.length === possibleItemVersionParts.length) {
+                    let previousItemVersion =
+                        +previousItemVersionParts[previousItemVersionParts.length - 1];
+                    let possibleItemVersion =
+                        +possibleItemVersionParts[possibleItemVersionParts.length - 1];
+                    // Compare the current item to the one that was found last time, it is possible
+                    // that the previous item is version 50.10.100 and the new item is 50.10.20
+                    // which is not actually higher (100 > 20)
+                    itemFound = possibleItemVersion > previousItemVersion ? item : itemFound;
+                  } else {
+                    itemFound = item;
+                  }
                 }
               }
             }
